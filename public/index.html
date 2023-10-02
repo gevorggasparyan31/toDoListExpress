@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+</head>
+<body>
+<h1>ToDoList App</h1>
+
+<h2>Add New Task</h2>
+<form id="taskForm">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required><br><br>
+
+    <label for="description">Description:</label>
+    <textarea id="description" name="description" required></textarea><br>
+
+    <label for="dueDate">Date:</label>
+    <input type="text" id="dueDate" name="date" required><br><br>
+
+    <label for="completed">Completed:</label>
+    <input type="text" id="completed" name="completed" required>
+
+    <button type="submit">Add Task</button>
+</form>
+
+<!-- List of Tasks -->
+<h2>Tasks</h2>
+<ul id="taskList"></ul>
+
+<!-- Task Details -->
+<h2>Task Details</h2>
+<div id="taskDetails"></div>
+
+<script>
+    async function fetchTasks() {
+        const response = await fetch('/tasks');
+        const tasks = await response.json();
+
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+
+        tasks.forEach(task => {
+            const listItem = document.createElement('li');
+            listItem.textContent = task.title;
+            listItem.addEventListener('click', () => showTaskDetails(task._id));
+            taskList.appendChild(listItem);
+        });
+    }
+
+    // Function to display task details
+    async function showTaskDetails(taskId) {
+        const response = await fetch(`/tasks/${taskId}`);
+        const task = await response.json();
+
+        const taskDetails = document.getElementById('taskDetails');
+        taskDetails.innerHTML = '';
+
+        const title = document.createElement('h3');
+        title.textContent = task.title;
+
+        const description = document.createElement('p');
+        description.textContent = task.description;
+
+        const dueDate = document.createElement('p');
+        dueDate.textContent = task.dueDate;
+
+        const completed = document.createElement('p');
+        dueDate.textContent = task.completed;
+
+        taskDetails.appendChild(title);
+        taskDetails.appendChild(description);
+        taskDetails.appendChild(dueDate);
+        taskDetails.appendChild(completed);
+    }
+
+    // Function to handle form submission and add a new task
+    document.getElementById('taskForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const title = formData.get('title');
+        const description = formData.get('description');
+        const dueDate = formData.get('dueDate');
+        const completed = formData.get('completed');
+
+        const response = await fetch('/newTask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title, description ,dueDate, completed})
+        });
+
+        if (response.ok) {
+            await fetchTasks();
+            event.target.reset(); // Clear the form
+        }
+    });
+
+    fetchTasks();
+</script>
+</body>
+</html>
